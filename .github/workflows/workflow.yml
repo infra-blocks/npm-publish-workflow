@@ -1,40 +1,101 @@
-name: Your Reusable Workflow
+name: NPM Publish
 
 on:
   workflow_call:
     inputs:
-      example-input:
-        description: An example input
+      version:
         type: string
+        description: |
+          The release type or the new release version. Either a semantic version or one of
+          "major", "minor", "patch", "premajor", "preminor", "prepatch", or "prerelease".
         required: true
+      dist-tags:
+        type: string
+        description: A stringified JSON array of the dist-tags to apply.
+        required: false
+        default: '["latest"]'
     secrets:
-      example-secret:
-        description: An example secret
+      github-token:
+        description: |
+          The GitHub token used to configure the Git CLI. It should have the rights to push code and tags.
+          When the branch or the tags are protected, this should be a PAT.
+        required: true
+      npm-token:
+        description: The NPM token required to publish the package.
         required: true
     outputs:
-      example-output:
-        description: An example output
-        value: ${{ jobs.example-job.outputs.example-output }}
+      package-name:
+        value: ${{ jobs.npm-publish-prerelease.outputs.package-name }}
+        description: The name of the processed package.
+      version:
+        value: ${{ jobs.npm-publish-prerelease.outputs.version }}
+        description: The version of the released package.
+      dist-tags:
+        value: ${{ jobs.npm-publish-prerelease.outputs.dist-tags }}
+        description: The stringified JSON array of dist-tags applied.
+      links:
+        value: ${{ jobs.npm-publish-prerelease.outputs.links }}
+        description: |
+          A stringified JSON array of markdown links to the released package's registry versions of the form:
+          [
+            "[<package-identifier>](<version-registry-url>)"
+          ]
 
-# The set of permissions your workflow needs.
 permissions:
-  pull-requests: read
-
-# The concurrency of your workflow.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  contents: write
 
 jobs:
-  example-job:
+  npm-publish:
     runs-on: ubuntu-22.04
     outputs:
-      example-output: ${{ steps.example-step.outputs.example-output }}
+      package-name: ${{ steps.npm-publish.outputs.package-name }}
+      version: ${{ steps.npm-publish.outputs.version }}
+      dist-tags: ${{ steps.npm-publish.outputs.dist-tags }}
+      links: ${{ steps.npm-publish.outputs.links }}
     steps:
-      - name: Example step
-        id: example-step
-        env:
-          BIG_SECRET: ${{ secrets.example-secret }}
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.github-token }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # Packaging can require some dependencies. Like tsc if we're building, for example.
+      - name: Install dependencies
+        run: npm ci
+      - name: Configure Git
         run: |
-          echo "your input: ${{ inputs.example-input }}"
-          echo "example-output=toto" >> "${GITHUB_OUTPUT}"
+          username=$(git log -1 --pretty=format:'%an')
+          email=$(git log -1 --pretty=format:'%ae')
+
+          echo "::debug::configuring git user and email to: '${username}' '${email}'"
+          git config user.name "${username}"
+          git config user.email "${email}"
+      # TODO: this should be npm-publish-action v2.
+      - name: NPM version & publish
+        id: npm-publish
+        env:
+          NPM_TOKEN: ${{ secrets.npm-token }}
+        run: |
+          package_name=$(jq -r '.name' package.json)
+          version=$(jq -r '.version' package.json)
+          mapfile -t dist_tags < <(echo '${{ inputs.dist-tags }}' | jq '.[]' -r)
+                    
+          npm version ${{ inputs.version }}          
+          npm publish --tag ${dist_tags[0]}          
+          for dist_tag in ${dist_tags[@]:1}; do
+            npm dist-tag add "${package_name}@${version}" ${dist_tag}          
+          done
+          
+          # Generate links.
+          declare -a links_text=()
+          for dist_tag in ${dist_tags[@]}; do
+            links_text+=("[${package_name}@${dist_tag}](https://www.npmjs.com/package/${package_name}/v/${dist_tag})")
+          done
+          links_json=$(printf "%s\n" ${links_text[@]} | jq -Rnc '[inputs]')
+          
+          # Outputs
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "package-name=${package_name}" >> "${GITHUB_OUTPUT}"
+          echo "dist-tags=${{ inputs.dist-tags }}" >> "${GITHUB_OUTPUT}"
+          echo "link=${links_json}" >> "${GITHUB_OUTPUT}"
