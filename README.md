@@ -1,62 +1,82 @@
-# github-actions-workflow-template
+# npm-publish-workflow
 
-This repository is a template for creating reusable GitHub Actions Workflows. Go through the below checklist
-upon instantiating this template:
-- Remove the [trigger update from template workflow](.github/workflows/trigger-update-from-template.yml)
-- Edit the content of [the placeholder](.github/workflows/workflow.yml) for your reusable workflow.
-- Edit this document and update the relevant sections
+This reusable workflow runs all the necessary steps to publish a new version of an NPM package based on the
+version provided.
+
+It checks out the code, prepares the dependencies, runs `npm version`, `npm publish`, and finally pushes
+the resulting commit and tag upstream.
+
+Any version that is accepted by `npm version` can be provided as input.
+
+If pushing against a protected branch, then a GitHub PAT should be provided. The user owning that PAT should have
+permissions to bypass the protection branch. This way, we can use `git push` instead of `git push --force`, which
+could have undesired consequences.
 
 ## Inputs
 
-|     Name      | Required | Description       |
-|:-------------:|:--------:|-------------------|
-| example-input |   true   | An example input. |
+|   Name    | Required | Description                                                                                                                                                                                         |
+|:---------:|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|  version  |   true   | The release type or the new release version. Either a semantic version or one of "major", "minor", "patch", "premajor", "preminor", "prepatch", or "prerelease".                                    |
+| dist-tags |  false   | A stringified JSON array of the dist-tags to apply. Defaults to '["latest"]'                                                                                                                        |
+|  skip-ci  |  false   | A boolean indicating whether to skip the CI when pushing the git commit or not. This is especially useful if using this workflow on a push event with a GitHub PAT, for example. Defaults to false. |
 
 ## Secrets
 
-|      Name      | Required | Description        |
-|:--------------:|:--------:|--------------------|
-| example-secret |   true   | An example secret. |
+|     Name     | Required | Description                                                                                                                                                                      |
+|:------------:|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| github-token |   true   | The GitHub token used to configure the Git CLI. It should have the rights to push code and tags. When the branch or the tags are protected, this should be a PAT.                |
+|  npm-token   |   true   | The NPM token used to publish the package. This is passed as the NPM_TOKEN environment variable. See [ts-lib-template](https://github.com/infrastructure-blocks/ts-lib-template) |
 
 ## Outputs
 
-|      Name      | Description        |
-|:--------------:|--------------------|
-| example-output | An example output. |
+|     Name     | Description                                                                                                                                                   |
+|:------------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| package-name | The name of the processed package. Example: @infra-blocks/lib-template                                                                                        |
+|   version    | The version of the released package. Example: 1.2.3-alpha.5                                                                                                   |
+|  dist-tags   | The stringified JSON array of dist-tags applied. This will match the input.                                                                                   |
+|    links     | A stringified JSON array of markdown links to the released package's registry versions of the form:<br/> ["\[<package-identifier>\](<version-registry-url>)"] |
 
 ## Permissions
 
-|     Scope     | Level | Reason   |
-|:-------------:|:-----:|----------|
-| pull-requests | read  | Because. |
+|  Scope   | Level | Reason                                                                                                     |
+|:--------:|:-----:|------------------------------------------------------------------------------------------------------------|
+| contents | write | In case the GitHub token provided is the GITHUB_TOKEN. This will be required to push the changes upstream. |
 
 ## Concurrency controls
 
-Describe concurrency controls of the workflow.
+N/A
 
 ## Timeouts
 
-Describe the timeouts configured, if any.
+N/A
 
 ## Usage
 
 ```yaml
-name: Template Usage
+name: NPM Publish
 
 on:
   push: ~
 
-# This needs to be a superset of what your workflow requires
 permissions:
-  pull-requests: read
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  example-job:
-    uses: infrastructure-blocks/github-actions-workflow-template/.github/workflows/workflow.yml@v1
+  npm-publish:
+    uses: infrastructure-blocks/npm-publish-workflow/.github/workflows/workflow.yml@feature/first-implementation
+    permissions:
+      contents: write
     with:
-      example-input: Nobody cares
+      version: major
+      dist-tags: '["latest", "git-sha-${{ github.event.pull_request.head.sha }}"]'
     secrets:
-      example-secret: ${{ secrets.EXAMPLE }}
+      github-token: ${{ secrets.PAT }}
+      npm-token: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
 ```
 
 ### Releasing

@@ -5,23 +5,26 @@ on:
     inputs:
       version:
         type: string
-        description: |
-          The release type or the new release version. Either a semantic version or one of
-          "major", "minor", "patch", "premajor", "preminor", "prepatch", or "prerelease".
+        description: The release type or the new release version.
         required: true
       dist-tags:
         type: string
         description: A stringified JSON array of the dist-tags to apply.
         required: false
         default: '["latest"]'
+      skip-ci:
+        type: boolean
+        description: |
+          Whether to include a signal in the commit that will prevent GitHub Actions from being triggered by the
+          git push.
+        required: false
+        default: false
     secrets:
       github-token:
-        description: |
-          The GitHub token used to configure the Git CLI. It should have the rights to push code and tags.
-          When the branch or the tags are protected, this should be a PAT.
+        description: The GitHub token used to configure the Git CLI.
         required: true
       npm-token:
-        description: The NPM token required to publish the package.
+        description: The NPM token used to publish the package.
         required: true
     outputs:
       package-name:
@@ -93,6 +96,20 @@ jobs:
             links_text+=("[${package_name}@${dist_tag}](https://www.npmjs.com/package/${package_name}/v/${dist_tag})")
           done
           links_json=$(printf "%s\n" ${links_text[@]} | jq -Rnc '[inputs]')
+          
+          # Push the new commit and the new tag upstream.
+          latest_tag=$(git describe --tags --abbrev=0)
+          
+          if test '${{ inputs.skip-ci }}' = 'true'; then
+            message=$(git log --format=%B -n 1)
+            message=$(printf '%s\n\n[skip ci]' "${message}")
+            git commit --amend -m "${message}"
+            # Because we rewrote the latest commit, we have to move the tag.
+            git tag "${latest_tag}" --force
+          fi
+          
+          git push origin
+          git push origin "${latest_tag}"
           
           # Outputs
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
