@@ -67,7 +67,7 @@ concurrency:
 
 jobs:
   npm-publish:
-    uses: infrastructure-blocks/npm-publish-workflow/.github/workflows/workflow.yml@feature/first-implementation
+    uses: infrastructure-blocks/npm-publish-workflow/.github/workflows/workflow.yml@v1
     permissions:
       contents: write
     with:
