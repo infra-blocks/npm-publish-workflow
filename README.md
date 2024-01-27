@@ -35,6 +35,7 @@ could have undesired consequences.
 |   version    | The version of the released package. Example: 1.2.3-alpha.5                                                                                                   |
 |  dist-tags   | The stringified JSON array of dist-tags applied. This will match the input.                                                                                   |
 |    links     | A stringified JSON array of markdown links to the released package's registry versions of the form:<br/> ["\[<package-identifier>\](<version-registry-url>)"] |
+|   git-tag    | The Git tag produced.                                                                                                                                         |
 
 ## Permissions
 

@@ -28,21 +28,24 @@ on:
         required: true
     outputs:
       package-name:
-        value: ${{ jobs.npm-publish-prerelease.outputs.package-name }}
+        value: ${{ jobs.npm-publish.outputs.package-name }}
         description: The name of the processed package.
       version:
-        value: ${{ jobs.npm-publish-prerelease.outputs.version }}
+        value: ${{ jobs.npm-publish.outputs.version }}
         description: The version of the released package.
       dist-tags:
-        value: ${{ jobs.npm-publish-prerelease.outputs.dist-tags }}
+        value: ${{ jobs.npm-publish.outputs.dist-tags }}
         description: The stringified JSON array of dist-tags applied.
       links:
-        value: ${{ jobs.npm-publish-prerelease.outputs.links }}
+        value: ${{ jobs.npm-publish.outputs.links }}
         description: |
           A stringified JSON array of markdown links to the released package's registry versions of the form:
           [
             "[<package-identifier>](<version-registry-url>)"
           ]
+      git-tag:
+        value: ${{ jobs.npm-publish.outputs.git-tag }}
+        description: The Git tag produced.
 
 permissions:
   contents: write
@@ -55,6 +58,7 @@ jobs:
       version: ${{ steps.npm-publish.outputs.version }}
       dist-tags: ${{ steps.npm-publish.outputs.dist-tags }}
       links: ${{ steps.npm-publish.outputs.links }}
+      git-tag: ${{ steps.npm-publish.outputs.git-tag }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -98,21 +102,22 @@ jobs:
           links_json=$(printf "%s\n" ${links_text[@]} | jq -Rnc '[inputs]')
           
           # Push the new commit and the new tag upstream.
-          latest_tag=$(git describe --tags --abbrev=0)
+          git_tag=$(git describe --tags --abbrev=0)
           
           if test '${{ inputs.skip-ci }}' = 'true'; then
             message=$(git log --format=%B -n 1)
             message=$(printf '%s\n\n[skip ci]' "${message}")
             git commit --amend -m "${message}"
             # Because we rewrote the latest commit, we have to move the tag.
-            git tag "${latest_tag}" --force
+            git tag "${git_tag}" --force
           fi
           
           git push origin
-          git push origin "${latest_tag}"
+          git push origin "${git_tag}"
           
           # Outputs
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
           echo "package-name=${package_name}" >> "${GITHUB_OUTPUT}"
           echo "dist-tags=${{ inputs.dist-tags }}" >> "${GITHUB_OUTPUT}"
           echo "links=${links_json}" >> "${GITHUB_OUTPUT}"
+          echo "git-tag=${git_tag}" >> "${GITHUB_OUTPUT}"
