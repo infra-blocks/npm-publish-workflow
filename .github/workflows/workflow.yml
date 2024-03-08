@@ -85,10 +85,10 @@ jobs:
           NPM_TOKEN: ${{ secrets.npm-token }}
         run: |
           package_name=$(jq -r '.name' package.json)
-          version=$(jq -r '.version' package.json)
           mapfile -t dist_tags < <(echo '${{ inputs.dist-tags }}' | jq '.[]' -r)
                     
-          npm version ${{ inputs.version }}          
+          npm version ${{ inputs.version }}
+          version=$(jq -r '.version' package.json)          
           npm publish --tag ${dist_tags[0]}          
           for dist_tag in ${dist_tags[@]:1}; do
             npm dist-tag add "${package_name}@${version}" ${dist_tag}          
