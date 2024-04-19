@@ -12,6 +12,11 @@ on:
         description: A stringified JSON array of the dist-tags to apply.
         required: false
         default: '["latest"]'
+      skip:
+        type: boolean
+        description: Whether to skip the workflow or not.
+        required: false
+        default: false
       skip-ci:
         type: boolean
         description: |
@@ -52,6 +57,7 @@ permissions:
 
 jobs:
   npm-publish:
+    if: ${{ !inputs.skip }}
     runs-on: ubuntu-22.04
     outputs:
       package-name: ${{ steps.npm-publish.outputs.package-name }}
