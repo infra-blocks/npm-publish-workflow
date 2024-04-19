@@ -20,6 +20,7 @@ could have undesired consequences.
 |:---------:|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |  version  |   true   | The release type or the new release version. Either a semantic version or one of "major", "minor", "patch", "premajor", "preminor", "prepatch", or "prerelease".                                    |
 | dist-tags |  false   | A stringified JSON array of the dist-tags to apply. Defaults to '["latest"]'                                                                                                                        |
+|   skip    |  false   | A boolean indicating whether to skip whether to skip the workflow. This is to workaround the required checks path issue when workflows are skipped. It defaults to false.                           |
 |  skip-ci  |  false   | A boolean indicating whether to skip the CI when pushing the git commit or not. This is especially useful if using this workflow on a push event with a GitHub PAT, for example. Defaults to false. |
 
 ## Secrets
