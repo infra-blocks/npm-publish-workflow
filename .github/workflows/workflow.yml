@@ -56,8 +56,12 @@ permissions:
   contents: write
 
 jobs:
+<<<<<<< HEAD
   npm-publish:
     if: ${{ !inputs.skip }}
+=======
+  example-job:
+>>>>>>> template/master
     runs-on: ubuntu-22.04
     outputs:
       package-name: ${{ steps.npm-publish.outputs.package-name }}
@@ -66,6 +70,7 @@ jobs:
       links: ${{ steps.npm-publish.outputs.links }}
       git-tag: ${{ steps.npm-publish.outputs.git-tag }}
     steps:
+<<<<<<< HEAD
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.github-token }}
@@ -77,6 +82,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Configure Git
+=======
+      # This condition should be on every step.
+      - if: ${{ !inputs.skip }}
+        id: example-step
+        name: Example step
+        env:
+          BIG_SECRET: ${{ secrets.example-secret }}
+>>>>>>> template/master
         run: |
           username=$(git log -1 --pretty=format:'%an')
           email=$(git log -1 --pretty=format:'%ae')
