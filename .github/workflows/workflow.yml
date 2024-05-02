@@ -57,7 +57,6 @@ permissions:
 
 jobs:
   npm-publish:
-    if: ${{ !inputs.skip }}
     runs-on: ubuntu-22.04
     outputs:
       package-name: ${{ steps.npm-publish.outputs.package-name }}
@@ -66,17 +65,21 @@ jobs:
       links: ${{ steps.npm-publish.outputs.links }}
       git-tag: ${{ steps.npm-publish.outputs.git-tag }}
     steps:
-      - uses: actions/checkout@v4
+      - if: ${{ !inputs.skip }}
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.github-token }}
-      - uses: actions/setup-node@v4
+      - if: ${{ !inputs.skip }}
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       # Packaging can require some dependencies. Like tsc if we're building, for example.
-      - name: Install dependencies
+      - if: ${{ !inputs.skip }}
+        name: Install dependencies
         run: npm ci
-      - name: Configure Git
+      - if: ${{ !inputs.skip }}
+        name: Configure Git
         run: |
           username=$(git log -1 --pretty=format:'%an')
           email=$(git log -1 --pretty=format:'%ae')
@@ -85,7 +88,8 @@ jobs:
           git config user.name "${username}"
           git config user.email "${email}"
       # TODO: this should be npm-publish-action v2.
-      - name: NPM version & publish
+      - if: ${{ !inputs.skip }}
+        name: NPM version & publish
         id: npm-publish
         env:
           NPM_TOKEN: ${{ secrets.npm-token }}
