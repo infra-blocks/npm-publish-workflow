@@ -1,6 +1,6 @@
 # npm-publish-workflow
-[![Release](https://github.com/infrastructure-blocks/npm-publish-workflow/actions/workflows/release.yml/badge.svg)](https://github.com/infrastructure-blocks/npm-publish-workflow/actions/workflows/release.yml)
-[![Update From Template](https://github.com/infrastructure-blocks/npm-publish-workflow/actions/workflows/update-from-template.yml/badge.svg)](https://github.com/infrastructure-blocks/npm-publish-workflow/actions/workflows/update-from-template.yml)
+[![Release](https://github.com/infra-blocks/npm-publish-workflow/actions/workflows/release.yml/badge.svg)](https://github.com/infra-blocks/npm-publish-workflow/actions/workflows/release.yml)
+[![Update From Template](https://github.com/infra-blocks/npm-publish-workflow/actions/workflows/update-from-template.yml/badge.svg)](https://github.com/infra-blocks/npm-publish-workflow/actions/workflows/update-from-template.yml)
 
 This reusable workflow runs all the necessary steps to publish a new version of an NPM package based on the
 version provided.
@@ -28,7 +28,7 @@ could have undesired consequences.
 |     Name     | Required | Description                                                                                                                                                                      |
 |:------------:|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | github-token |   true   | The GitHub token used to configure the Git CLI. It should have the rights to push code and tags. When the branch or the tags are protected, this should be a PAT.                |
-|  npm-token   |   true   | The NPM token used to publish the package. This is passed as the NPM_TOKEN environment variable. See [ts-lib-template](https://github.com/infrastructure-blocks/ts-lib-template) |
+|  npm-token   |   true   | The NPM token used to publish the package. This is passed as the NPM_TOKEN environment variable. See [ts-lib-template](https://github.com/infra-blocks/ts-lib-template) |
 
 ## Outputs
 
@@ -71,7 +71,7 @@ concurrency:
 
 jobs:
   npm-publish:
-    uses: infrastructure-blocks/npm-publish-workflow/.github/workflows/workflow.yml@v1
+    uses: infra-blocks/npm-publish-workflow/.github/workflows/workflow.yml@v1
     permissions:
       contents: write
     with:
@@ -86,4 +86,4 @@ jobs:
 ### Releasing
 
 The releasing is handled at git level with semantic versioning tags. Those are automatically generated and managed
-by the [git-tag-semver-from-label-workflow](https://github.com/infrastructure-blocks/git-tag-semver-from-label-workflow).
+by the [git-tag-semver-from-label-workflow](https://github.com/infra-blocks/git-tag-semver-from-label-workflow).
