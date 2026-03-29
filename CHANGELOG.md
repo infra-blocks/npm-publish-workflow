@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-03-29
+
+### Fixed
+
+- With the recent changes around [`ts-lib-template`](https://github.com/infra-blocks/ts-lib-template),
+`mise` is now required on certain repositories. Hence, this new version installs mise and provisions
+tools when configured.
+
 ## [1.2.2] - 2024-05-18
 
 ### Changed
@@ -73,7 +81,8 @@ input.
 
 - First release!
 
-[1.2.1]: https://github.com/infra-blocks/npm-publish-workflow/compare/v1.2.1...v1.2.2
+[1.2.3]: https://github.com/infra-blocks/npm-publish-workflow/compare/v1.2.2...v1.2.3
+[1.2.2]: https://github.com/infra-blocks/npm-publish-workflow/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/infra-blocks/npm-publish-workflow/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/infra-blocks/npm-publish-workflow/compare/v1.1.1...v1.2.0
 [1.1.1]: https://github.com/infra-blocks/npm-publish-workflow/compare/v1.1.0...v1.1.1
